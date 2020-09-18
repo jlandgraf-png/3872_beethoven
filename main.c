@@ -112,7 +112,7 @@ void chart_idle_event() {
    if ( var_resetTimer > 200) { // Number here is arbitrary, would need to be tested to find a suitable number
    // Alternatively, find a way to use a real timer and have it run for 3 seconds
        
-       // TODO reset the recording data
+   // TODO reset the recording data
    }
  
 }
