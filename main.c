@@ -163,9 +163,22 @@ void chart_play_live_event() {
 
 // Function occurs while in the play recording state
 void chart_play_recording_event() {
-  // Must do several things here
-  // Processor must read the first value in the recording, begin playing through speaker and move the motors to the associated positions
-  // Processor must have a timer for how long the recording has been playing. After some time, move to the next entry in the recording, and make the appropriate changes.
+  
+  //If note has been playing too long, move onto the next one
+  // Just as with the other timer, this is just a placeholder value for now (will likely need to implement a real timer later)
+  if (playingTimer > 200) { 
+    if (freqVector.size - 1 == vectorPosition) {
+      vectorPosition = 0; // Don't try to read past the size, just loop back to start
+    } else {
+      vectorPosition++;
+    }  
+    playingTimer = 0;
+  }
+  
+  // Move accordingly
+  playTone(freqVector(vectorPosition));
+  moveMotor1(freqVector(vectorPosition));
+  moveMotor2(freqVector(vectorPosition));
 }
 
 // Entry Points and Interrupt Handlers
