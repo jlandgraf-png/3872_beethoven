@@ -61,6 +61,10 @@ void chart_SETUP() {
 
     // Parse the buttons each to determine state, then switch based on state
     chart_checkButtons();
+    
+    if (var_state != "idle") {
+      var_resetTimer = 0;
+    }
 
     switch (var_state) {
     case "idle":
@@ -126,6 +130,7 @@ void chart_idle_event() {
   if (var_resetTimer > 200) { // Number here is arbitrary, would need to be tested to find a suitable number
     // Alternatively, find a way to use a real timer and have it run for 3 seconds
     freqVector.clear();
+    var_resetTimer = 0;
   }
 
 }
@@ -139,8 +144,6 @@ void chart_stop_event() {
 
 // Function occurs while in record state
 void chart_record_event() {
-  // If the store button is asserted (positive edge only, must not activate several times for one press)
-  // TODO check for store only on rising clock edge
   if (STORE() && !storeButtonHeldDown) {
     storeButtonHeldDown = 1;
     freqVector.pushback(readFrequencyInput());
@@ -152,7 +155,6 @@ void chart_record_event() {
 // Function occurs while in the play live state
 void chart_play_live_event() {
   // If the store button is asserted, robot should begin to produce the selected frequency, and move the motors to the correspodnding position
-  // (rising clock edge unimportant here)
   if (STORE()) {
     currentFrequency = readFrequencyInput();
 
