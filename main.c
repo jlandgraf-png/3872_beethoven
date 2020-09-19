@@ -8,6 +8,8 @@
 #include <core.h> // Required by cpu
 #include <cpu.h>
 #include <Generic.h>
+#include <iostream>
+#include <vector>
 
 #pragma GCC pop_options
 
@@ -38,6 +40,12 @@ float var_motor_1_velocity;
 long var_motor_2_velocity;
 float var_speaker_out;
 
+// Other global variables
+vector<double> freqVector;
+int vectorPosition;
+int playingTimer;
+double currentFrequency;
+
 
 
 
@@ -46,6 +54,9 @@ void chart_SETUP() {
 
     // Initial variable declarations
    var_state="idle",var_resetTimer=0,var_motor_1_angle=0,var_motor_2_angle=0,var_motor_1_velocity=0,var_motor_2_velocity=0,var_speaker_out=0;
+   vectorPosition = 0;
+   playingTimer = 0;
+   currentFrequency = 0;
    
    while (true) {
    
@@ -94,6 +105,7 @@ void chart_checkButtons() {
  }
  if(RECORD()) {
   var_state="record";
+  uLCD_main.print("INPUT NOTE USING DIAL");
  }
  if(PLAY_LIVE()) {
   var_state="play live";
@@ -107,12 +119,14 @@ void chart_checkButtons() {
 // This function is called while the reset button is asserted.
 void chart_idle_event() {
    var_resetTimer=var_resetTimer+1,var_motor_1_angle=0,var_motor_2_angle=0,var_motor_1_velocity=0,var_motor_2_velocity=0,var_speaker_out=0;
+   vectorPosition = 0;
+   playingTimer = 0;
+   currentFrequency = 0;
    // Above several variables are set to initial values (motors must stop, speaker must stop producing sound)
    
    if ( var_resetTimer > 200) { // Number here is arbitrary, would need to be tested to find a suitable number
    // Alternatively, find a way to use a real timer and have it run for 3 seconds
-       
-   // TODO reset the recording data
+       freqVector.clear();
    }
  
 }
@@ -130,18 +144,26 @@ void chart_stop_event() {
 // Function occurs while in record state
 void chart_record_event() {
    // If the store button is asserted (positive edge only, must not activate several times for one press)
-   // then save the selected frequency from the frequency dial in the recording
-   if(!(STORE())) {
+   // TODO check for store only on rising clock edge
+   if(STORE()) {
+       freqVector.pushback(readFrequencyInput());
    }
 }
 
 // Function occurs while in the play live state
 void chart_play_live_event() {
    // If the store button is asserted, robot should begin to produce the selected frequency, and move the motors to the correspodnding position
-   if(!(STORE())) {
+   // (rising clock edge unimportant here)
+   if(STORE()) {
+      currentFrequency = readFrequencyInput();
+	   
+	   
       // Set frequency set to speaker
-      
+      // TODO Define these functions
+      playTone(currentFrequency);
       // Motor instructions
+      moveMotor1(currentFrequency);
+      moveMotor2(currentFrequency);
    
    }
 }
