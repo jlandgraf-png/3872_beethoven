@@ -45,6 +45,7 @@ vector < double > freqVector;
 int vectorPosition;
 int playingTimer;
 double currentFrequency;
+int storeButtonHeldDown;
 
 // Flowchart Routines
 void chart_SETUP() {
@@ -54,6 +55,7 @@ void chart_SETUP() {
   vectorPosition = 0;
   playingTimer = 0;
   currentFrequency = 0;
+  storeButtonHeldDown = 0;
 
   while (true) {
 
@@ -118,6 +120,7 @@ void chart_idle_event() {
   vectorPosition = 0;
   playingTimer = 0;
   currentFrequency = 0;
+  storeButtonHeldDown = 0;
   // Above several variables are set to initial values (motors must stop, speaker must stop producing sound)
 
   if (var_resetTimer > 200) { // Number here is arbitrary, would need to be tested to find a suitable number
@@ -129,18 +132,20 @@ void chart_idle_event() {
 
 // This function runs when stop button is asserted. Simply stops the playback/dancing exactly where it is
 void chart_stop_event() {
-  // Does not reset motors to initial angles
+  // Does not reset motors to initial angles, nor does it reset playback state
   var_motor_1_velocity = 0, var_motor_2_velocity = 0, var_speaker_out = 0;
 
-  // Must also save current position in recording
 }
 
 // Function occurs while in record state
 void chart_record_event() {
   // If the store button is asserted (positive edge only, must not activate several times for one press)
   // TODO check for store only on rising clock edge
-  if (STORE()) {
+  if (STORE() && !storeButtonHeldDown) {
+    storeButtonHeldDown = 1;
     freqVector.pushback(readFrequencyInput());
+  } else {
+    storeButtonHeldDown = 0;
   }
 }
 
