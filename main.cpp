@@ -30,6 +30,14 @@ bool STORE;
 bool PLAY_LIVE;
 bool PLAY_RECORDING;
 
+//Global String Variables for States
+vector <string> stringStates; //string vector that holds valid states
+string curr_st; //empty string that stores the current state.
+stringStates.pushback("stop");
+stringStates.pushback("record");	//states pushed onto vector
+stringStates.pushback("play live")
+stringStates.pushback("play recording");
+
 // Flowchart Variables
 int state;
 enum states{idle, stop, record, play_live, play_recording};
@@ -55,7 +63,8 @@ void moveMotor2(int freq) {return;}
 int readFrequencyInput() {return 0;}
 void playTone(int freq) {return;}
 
-
+// Function Declrations
+void print_currState(string);
 
 
 // Flowchart Routines
@@ -183,18 +192,28 @@ int main() {
 
     switch (state) {
     case idle:
+      curr_st = "idle"; 
+      print_currState(curr_st);
       idle_event();
       break;
     case stop:
+	  curr_st = "stop";
+      print_currState(curr_st);
       stop_event();
       break;
     case record:
+      curr_st = "record";
+      print_currState(curr_st);
       record_event();
       break;
     case play_live:
+      curr_st = "play live";
+      print_currState(curr_st);
       play_live_event();
       break;
     case play_recording:
+      curr_st = "play recording";
+      print_currState(curr_st);
       play_recording_event();
       break;
     }
@@ -202,3 +221,15 @@ int main() {
 
   return 0;
 }
+
+
+void print_currState(string currentState){
+	int result;
+	for(int i = 0; i<=stringStates.length(); i++){
+		result = strcmp(currentState,stringStates[i]); //compares the characters of both strings
+		if(result == 1){ //if there is a match 
+			cout<<"State Currently in: "<<stringStates[i]<<endl; //Print out current state
+			i = 500; //Breakout of FOR loop
+		}//end of IF
+	}//end of FOR
+}//end of Function Definition
