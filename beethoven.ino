@@ -6,8 +6,13 @@
 // Tie the right pins to the LCD
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
-Servo servo1, servo2; // Attach to pins 9 and 10 respectively in setup later
+const int resetPin = 6;
+const int stopPin = 7;
+const int recordPin = 8;
+const int storePin = 13;
+const int playLivePin = 18;
+const int playRecordingPin = 19;
+const int freqPin = A3;
 
 // These will eventually be properly defined as the pushbuttons we use.
 bool RESET = false;
@@ -16,7 +21,11 @@ bool RECORD = false;
 bool STORE = false;
 bool PLAY_LIVE = false;
 bool PLAY_RECORDING = false;
-float freq = 0.0; //tied to analog input pin
+
+
+Servo servo1, servo2; // Attach to pins 9 and 10 respectively in setup later
+
+float freq = 0.0; //associated with frequency pin
 int freqi = 0;
 int prevFreqi = 0;
 
@@ -51,11 +60,6 @@ void playFrequency(int frequency) {
   return;
 }
 
-int readFrequencyInput(int frequency) {
-  freqi = int(round(float(freq)/1024.0 * 7.0)+1);
-  return freqi;
-}
-
 void updateLCD() {
 
   // Update state if it has changed
@@ -63,11 +67,11 @@ void updateLCD() {
     prevState = state;
 
     // Clear the top row
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     lcd.print("                ");
 
     // Print the current state
-    lcd.setCursor(0, 1);
+    lcd.setCursor(0, 0);
     switch (state) {
       case idle:
         lcd.print("IDLE");
@@ -86,15 +90,14 @@ void updateLCD() {
         lcd.print("PLAYBACK MODE");
         break;
     }
-
-  // Latch the frequency from the dial
-  freqi = int(round(float(freq)/1024.0 * 7.0)+1);
+  }
+  
   // Update the frequency if it has changed
   if (freqi != prevFreqi) {
     prevFreqi = freqi;
-    lcd.setCursor(0, 2);
+    lcd.setCursor(0, 1);
     lcd.print("                ");
-    lcd.setCursor(0, 2);
+    lcd.setCursor(0, 1);
     lcd.print("Frequency: ");
     lcd.print(freqi);
   }
@@ -110,17 +113,28 @@ void setup() {
   servo2.attach(10);
   servo1.write(0);
   servo2.write(0);
+
+  pinMode(resetPin, INPUT);
+  pinMode(stopPin, INPUT);
+  pinMode(recordPin, INPUT);
+  pinMode(storePin, INPUT);
+  pinMode(playLivePin, INPUT);
+  pinMode(playRecordingPin, INPUT);
+  pinMode(freqPin, INPUT);
 }
 
 void loop() {
 
+  // Check frequency first
+  freqi = int(round(float(analogRead(freqPin))/1024.0 * 7.0)+1);
+
   // Check the buttons to determine the state
   // Priority increases the further you go
-  if (PLAY_RECORDING) state = play_recording;
-  if (PLAY_LIVE) state = play_live;
-  if (RECORD) state = record;
-  if (STOP) state = stop0;
-  if (RESET) {
+  if (PLAY_RECORDING = digitalRead(playRecordingPin)) state = play_recording;
+  if (PLAY_LIVE = digitalRead(playLivePin)) state = play_live;
+  if (RECORD = digitalRead(recordPin)) state = record;
+  if (STOP = digitalRead(stopPin)) state = stop0;
+  if (RESET = digitalRead(resetPin)) {
     if (state == idle) {
       // Increment the reset timer.
       resetTimer++;
@@ -170,7 +184,7 @@ void loop() {
       
       if (STORE && !storeButtonHeldDown) {
         storeButtonHeldDown = 1;
-        freqVector.push_back(readFrequencyInput(freq));
+        freqVector.push_back(freqi);
       } else {
         storeButtonHeldDown = 0;
       }
@@ -182,7 +196,7 @@ void loop() {
       //Update LCD
       
       if (STORE) {
-        int newFreq = readFrequencyInput(freq);
+        int newFreq = freqi;
         playFrequency(newFreq);
         moveMotors(newFreq);
       }
