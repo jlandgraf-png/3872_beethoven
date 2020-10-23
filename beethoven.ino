@@ -1,7 +1,11 @@
-
 #include <Vector.h>
 #include <LiquidCrystal.h>
 #include <Servo.h>
+
+
+//-----------------------------------------------------------------------
+// Variable Declarations
+
 
 // Tie the right pins to the LCD
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
@@ -14,7 +18,7 @@ const int playLivePin = 18;
 const int playRecordingPin = 19;
 const int freqPin = A3;
 
-// These will eventually be properly defined as the pushbuttons we use.
+// Values associated with the pushbuttons
 bool RESET = false;
 bool STOP = false;
 bool RECORD = false;
@@ -23,11 +27,11 @@ bool PLAY_LIVE = false;
 bool PLAY_RECORDING = false;
 
 
-Servo servo1, servo2; // Attach to pins 9 and 10 respectively in setup later
+Servo servo1, servo2; // These get attached to pins 9 and 10 respectively in setup later
 
 float freq = 0.0; //associated with frequency pin
-int freqi = 0;
-int prevFreqi = 0;
+int freqi = 0; // interger associated with frequency
+int prevFreqi = 0; // interger associated with previous frequency (for displaying on LCD)
 
 // State enumeration.
 enum states{idle, stop0, record, play_live, play_recording};
@@ -38,16 +42,27 @@ int state = idle;
 int prevState = idle;
 Vector<int> freqVector;
 int vectorPosition = 0;
-int playingTimer = 0;
 int currentFrequency = 0;
 int storeButtonHeldDown = 0;
+int startedPlayingRecording = 0;
+
+// Timers for holding reset button and playing notes
+long resetStartTime = 0; //Full reset after 3000 millis
+long resetCurrentTime = 0;
+long playingStartTime = 0; //Change notes after 500 millis
+long playingCurrentTime = 0;
 
 // Declarations for output signals.
 int motor1_angle = 0;
 int motor2_angle = 0;
 float speaker_out = 0;
 
+
+// End of variable declarations
+//------------------------------------------------------------------------------
 // Helper functions to reduce redundancy
+
+
 void moveMotors(int frequency) {
   // Add switch statement for frequency
   servo1.write(90);
@@ -104,6 +119,12 @@ void updateLCD() {
   return;
 }
 
+
+// End of helper functions
+//----------------------------------------------------------------------------
+// Setup and Main Loop
+
+
 void setup() {
   // Setup for the LCD
   lcd.begin(16, 2);
@@ -135,17 +156,16 @@ void loop() {
   if (RECORD = digitalRead(recordPin)) state = record;
   if (STOP = digitalRead(stopPin)) state = stop0;
   if (RESET = digitalRead(resetPin)) {
-    if (state == idle) {
-      // Increment the reset timer.
-      resetTimer++;
-    } else {
+    if (state != idle) {
       // The idle state is being entered.
-      resetTimer = 0;
+      resetStartTime = millis();
       state = idle;
+    } else {
+      resetCurrentTime = millis();
+      if (resetCurrentTime - resetStartTime >= 3000) {
+        freqVector.clear();
+      }
     }
-  } else {
-    resetTimer = 0;
-    // Bring the reset Timer back to 0 when RESET is no longer being asserted.
   }
   
   // Perform different functionality depending on the current state.
@@ -156,23 +176,16 @@ void loop() {
       moveMotors(0);
       playFrequency(0);
       vectorPosition = 0;
-      playingTimer = 0;
       currentFrequency = 0;
       storeButtonHeldDown = 0;
       //TODO update LCD
 
-      // Reset the memory if held down
-      if (resetTimer > 2) {
-        freqVector.clear();
-        resetTimer = 0;
-      }
       break;
 
 
     case stop0:
 
       //Update LCD
-      
       playFrequency(0);
       storeButtonHeldDown = 0;
       break;
@@ -181,7 +194,6 @@ void loop() {
      case record:
       
       //Update LCD
-      
       if (STORE && !storeButtonHeldDown) {
         storeButtonHeldDown = 1;
         freqVector.push_back(freqi);
@@ -194,7 +206,6 @@ void loop() {
      case play_live:
       
       //Update LCD
-      
       if (STORE) {
         int newFreq = freqi;
         playFrequency(newFreq);
@@ -211,9 +222,10 @@ void loop() {
         playFrequency(0);
         break;
       }
-      
-      if (playingTimer > 200 || playingTimer == 0) {
-        playingTimer = 0;
+      playingCurrentTime = millis(); // Read current time
+      if (playingCurrentTime - playingStartTime >= 500 || !startedPlayingRecording) {
+        startedPlayingRecording = 1;
+        playingStartTime = millis();
         if (freqVector.size() - 1 == vectorPosition) {
           vectorPosition == 0;
         } else {
@@ -222,9 +234,12 @@ void loop() {
         playFrequency(freqVector[vectorPosition]);
         moveMotors(freqVector[vectorPosition]);
       }
-      playingTimer++;
       
       break;
+  }
+
+  if (state != play_recording) {
+    startedPlayingRecording = 0;
   }
 
 
