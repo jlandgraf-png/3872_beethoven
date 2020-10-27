@@ -64,7 +64,7 @@ float resetTimer = 0;
 int state = idle;
 int prevState = idle;
 
-const int totalVectorSize = 3;
+const int totalVectorSize = 40;
 int freqVector[totalVectorSize];
 int vectorPosition = 0;
 int vectorSize = 0;
@@ -203,13 +203,13 @@ void updateLCD() {
     lcd.setCursor(0,1);
     lcd.print(storeButtonHeldDown);
     */
-  /*
+  
   // Update the frequency if it has changed
   //if (freqi != prevFreqi) {
     prevFreqi = freqi;
     lcd.setCursor(5, 1);
     lcd.print(freqi);
-  //}*/
+  //}
   return;
 }
 
@@ -339,6 +339,7 @@ void loop() {
 
 
      case play_recording:
+     /*
      lcd.setCursor(0, 1);
      lcd.print(totalVectorSize);
      lcd.print(" ");
@@ -346,7 +347,7 @@ void loop() {
      lcd.print(" ");
      lcd.print(vectorPosition);
      lcd.print(" ");
-
+     */
       //Update LCD
 
       if(vectorSize == 0){
