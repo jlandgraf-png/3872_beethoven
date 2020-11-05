@@ -100,11 +100,14 @@ if(end1>180 || end1<0){
   }
   for(int i = start_angle_1; i<=end1; i++){
     servo1.write(i);
+    delay(500);
   }
   for(int i = start_angle_1; i >=end1; i--){
     servo1.write(i);
+    delay(500);
   }
   start_angle_1 = end1;
+  delay(500);
 }
 
 void sweep_2(int end2){
@@ -115,11 +118,14 @@ if(end2>180 || end2<0){
   }
   for(int i = start_angle_2; i<=end2; i++){
     servo2.write(i);
+    delay(500);
   }
   for(int i = start_angle_2; i >=end2; i--){
     servo2.write(i);
+    delay(500);
   }
   start_angle_2 = end2;
+  delay(500);
 }
 
 
